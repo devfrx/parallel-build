@@ -1,6 +1,6 @@
 # Template del brief degli esemplari (voce 8.12)
 
-Con questa approvazione l'utente accetta due cose che verranno moltiplicate per il numero di moduli: i **pattern** (gli esemplari) e la **definizione di fatto** (gli oracoli). Il brief deve permettergli di guardare il punto giusto in pochi minuti. Togli le sezioni vuote.
+Si scrive in `docs/consegna/incremento-<n>/esemplari.md` e si committa: è l'evidenza della 8.12. Con questa approvazione l'utente accetta due cose che verranno moltiplicate per il numero di moduli: i **pattern** (gli esemplari) e la **definizione di fatto** (gli oracoli). Il brief deve permettergli di guardare il punto giusto in pochi minuti. Togli le sezioni vuote.
 
 ---
 
@@ -36,8 +36,8 @@ della ripetizione.>
 
 ## Pronti per l'ondata
 - Controllo preliminare: parte 1 e parte 2 passate.
-- Tempo del gate incrementale: <minuti> per modulo; rientro stimato per <N>
-  task: <minuti>.
+- Tempo del gate incrementale misurato nel controllo preliminare: <minuti> per
+  modulo; <N> rientri in serie nell'ondata.
 - Concorrenza decisa: <N> agenti per lotto.
 
 ## Rischi aperti

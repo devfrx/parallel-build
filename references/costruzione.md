@@ -1,8 +1,8 @@
 # Implementazione
 
-La fase 8, nelle ondate fisse del piano: oracoli, motore, esemplari, costruzione. Il gate: ogni task del perimetro ha superato la DoD e i controlli sull'intera base di codice sono verdi. Il lancio dei sotto-agenti è in `delega-ed-esito.md`, il rientro di ogni ramo in `rientro.md`.
+La fase 8, nelle ondate fisse del piano: oracoli, motore, esemplari, costruzione. Il gate: ogni task del perimetro è rientrato superando la DoD di task, e i controlli sull'intera base di codice sono verdi. Il lancio dei sotto-agenti è in `delega-ed-esito.md`, il rientro di ogni ramo in `rientro.md`.
 
-Indice: Oracoli (8.11) · Motore · Esemplari e prova a secco (8.12) · Ondata di costruzione · Elenco d'attesa (8.13) · Controlli sull'intera base (8.02–8.10) · DoD e gate (8.01).
+Indice: Oracoli (8.11) · Motore · Esemplari e prova a secco (8.12) · Ondata di costruzione · Elenco d'attesa (8.13) · Controlli sull'intera base (8.02–8.10) · DoD e gate (8.01) · Costruzione seriale.
 
 ## Oracoli (8.11)
 
@@ -15,9 +15,9 @@ Un `test-author` per ogni task `oracoli` del piano, in parallelo, compresi i tas
 - **Interfaccia**: elementi cercati per ruolo e nome accessibile, come fissati nelle schermate; gli stati di caricamento, vuoto ed errore, dagli esempi del mock.
 - **Moduli ad alto rischio**: test basati su proprietà dove esiste un invariante da esprimere, cioè le regole e gli invarianti del modulo.
 - **Motore**: la suite di conformità del suo contratto, con test basati su proprietà per gli invarianti.
-- **End-to-end**: i percorsi critici, sui nomi accessibili, con tutte le storie dell'incremento che attraversano.
+- **End-to-end**: i percorsi critici, sui nomi accessibili, con tutte le storie dell'incremento che attraversano. Si scrivono ora, contro lo scheletro: l'app non c'è ancora, e il test è rosso come gli altri oracoli. Diventerà la prova della 9.08.
 
-**Rosso per la ragione giusta.** Ogni oracolo deve fallire perché il comportamento manca: un'asserzione falsa, una risposta "non implementato" dallo stub. Non per un errore di sintassi, di import o di configurazione: un test che fallisce per la ragione sbagliata diventerà verde per la ragione sbagliata, o non lo diventerà mai. L'autore lo dichiara nel suo esito; al rientro l'orchestratore riesegue i comandi del modulo e legge i fallimenti, uno per tipo.
+**Rosso per la ragione giusta.** Ogni oracolo deve fallire perché il comportamento manca: un'asserzione falsa, una risposta "non implementato" dallo stub, un elemento che la schermata stub non mostra. Non per un errore di sintassi, di import o di configurazione: un test che fallisce per la ragione sbagliata diventerà verde per la ragione sbagliata, o non lo diventerà mai. L'autore lo dichiara nel suo esito, con il risultato `rosso-atteso` e il perché nelle note; al rientro l'orchestratore riesegue i comandi e legge i fallimenti, uno per tipo.
 
 Rientro come in `rientro.md`. Tag `build/incremento-<n>/oracoli`; la voce 8.11 si chiude con il tag.
 
@@ -33,11 +33,13 @@ L'esemplare verrà copiato, difetti compresi. Quindi deve essere esemplare davve
 
 1. aggiorna il generatore dell'archetipo, così i costruttori partono da codice generato già vicino all'esemplare;
 2. scrivi in `CLAUDE.md` la **scheda dell'esemplare**: cinque-dieci righe che dicono quali file guardare per quale aspetto, senza ripetere il codice;
-3. togli le voci dell'esemplare dall'elenco d'attesa, nello stesso commit del rientro.
+3. le storie che l'esemplare completa escono dall'elenco d'attesa nello stesso commit del rientro (`rientro.md`, passo 5).
 
-**Prova a secco.** Un costruttore nuovo, del lato più rischioso, riceve il brief per un modulo usa e getta di un archetipo, per esempio una risorsa banale "prova". Ha a disposizione solo `CLAUDE.md`, l'esemplare e il generatore, nessuna spiegazione in più. Osserva: ha usato il generatore? ha seguito i pattern dell'esemplare o ne ha inventati? ha rispettato l'ownership? ha scritto un esito valido? dove la documentazione era ambigua, ha fatto un'escalation o ha tirato a indovinare? Ogni deviazione è un difetto della documentazione, del generatore o del brief, non del costruttore: correggilo ora, e ripeti la prova una volta se le correzioni sono state sostanziali. Il ramo non rientra, e si cancella. È il test di manutenibilità anticipato.
+**Prova a secco.** Un costruttore nuovo, del lato più rischioso, riceve il brief per un modulo usa e getta di un archetipo, per esempio una risorsa banale "prova". Ha a disposizione solo `CLAUDE.md` (nella parte comune del brief, con le schede appena scritte), l'esemplare e il generatore, nessuna spiegazione in più. Osserva: ha usato il generatore? ha seguito i pattern dell'esemplare o ne ha inventati? ha rispettato l'ownership? ha scritto un esito valido? dove la documentazione era ambigua, ha fatto un'escalation o ha tirato a indovinare? Ogni deviazione è un difetto della documentazione, del generatore o del brief, non del costruttore: correggilo ora, e ripeti la prova una volta se le correzioni sono state sostanziali. Il ramo non rientra, e si cancella. È il test di manutenibilità anticipato.
 
-**Approvazione.** Sul branch d'integrazione ogni comando del piano è verde e in elenco d'attesa restano solo i moduli dell'ondata di costruzione. Scrivi `.build/esemplari.md` con `assets/brief-esemplari.md` e portalo all'utente: approva i pattern che verranno replicati in ogni modulo e un campione degli oracoli, cioè la definizione di "fatto". È l'ultimo momento in cui un cambio di direzione costa un esemplare e non dieci moduli. Con il sì: tag `build/incremento-<n>/esemplari` e chiusura della 8.12 con il brief e il tag.
+**Approvazione.** Sul branch d'integrazione ogni comando del piano è verde e in elenco d'attesa restano solo le storie e i percorsi che aspettano l'ondata di costruzione. Scrivi `docs/consegna/incremento-<n>/esemplari.md` con `assets/brief-esemplari.md`, committalo, e portalo all'utente: approva i pattern che verranno replicati in ogni modulo e un campione degli oracoli, cioè la definizione di "fatto". È l'ultimo momento in cui un cambio di direzione costa un esemplare e non dieci moduli. Con il sì: tag `build/incremento-<n>/esemplari` e chiusura della 8.12 con il brief e il tag. Il brief sta nel repo, non in `.build/`: è l'evidenza di una voce, e deve sopravvivere alla pulizia.
+
+Dal secondo incremento, un archetipo il cui esemplare esiste (`costruito_in` nel piano) non ha esemplari da costruire: la prova a secco si ripete se generatore o schede sono cambiati, e l'approvazione riguarda gli esemplari nuovi e il campione degli oracoli.
 
 ## Ondata di costruzione
 
@@ -47,7 +49,7 @@ I rami rientrano uno alla volta, man mano che arrivano (`rientro.md`). Quando un
 
 ## Elenco d'attesa vuoto (8.13)
 
-A ondata chiusa l'elenco dei moduli in attesa è vuoto: nessun oracolo è escluso dalla suite, e "verde" significa ciò che sembra. Se resta una voce, c'è un modulo non rientrato: è un'escalation, non una voce da togliere a mano.
+A ondata chiusa l'elenco d'attesa contiene al più i percorsi critici, che escono alla 9.08 sull'app integrata: nessun oracolo di storia o di motore è escluso dalla suite, e "verde" significa ciò che sembra. Se resta una storia, un suo modulo non è rientrato: è un'escalation, non una riga da togliere a mano.
 
 ## Controlli sull'intera base (8.02–8.10)
 
@@ -65,6 +67,13 @@ Sul branch d'integrazione, a costruzione chiusa, ciascuno con la sua evidenza:
 
 ## DoD e gate (8.01)
 
-Ogni task è rientrato passando le voci della DoD di livello `task`, che il rientro verifica. Alla chiusura si verificano quelle di livello `incremento` (`progetto.py checklist --dod`): regressione verde in pipeline, revisione del codice (le lenti della fase 10 la completano), feature incomplete dietro un flag, incremento deployabile. L'accettazione dell'utente è la voce 11.08, e la nota della chiusura lo dice. La 8.01 si chiude con il registro di build (`scripts/registro.py riepilogo`) e i tag delle ondate.
+Ogni task è rientrato passando le voci della DoD di livello `task`, che il rientro verifica. Alla chiusura si verificano quelle di livello `incremento` (`progetto.py checklist --dod`, senza le escluse) che la costruzione chiude: regressione verde in pipeline, feature incomplete dietro un flag, incremento deployabile. La revisione del codice la completano le lenti della 10.01, l'accettazione è la 11.08, e la nota della chiusura lo dice. La 8.01 si chiude con il tag `build/incremento-<n>/costruzione`; il riepilogo del registro di build (`scripts/registro.py riepilogo`) va nel report di consegna.
 
 Il brief del gate: task rientrati e respinti con le cause, interruttori scattati, escalation decise, debito registrato, esiti dei controlli sull'intera base. Con l'approvazione dell'utente, `progetto.py approva 8 --da <chi approva>`.
+
+## Costruzione seriale
+
+Con `[scheda].costruzione = "seriale"`, scelta alla 7.12 per un incremento piccolo o un ambiente senza la concorrenza che serve, il metodo non cambia: stesso piano, stesse ondate nello stesso ordine, stessi rientri e stessi gate, un task alla volta. Il campo `agente` del piano resta il ruolo.
+
+- Con i sotto-agenti, ogni task si delega come sempre, uno alla volta: gli oracoli li scrive un `test-author`, il codice un costruttore, e nessuno dei due vede il lavoro dell'altro prima del rientro.
+- Senza sotto-agenti, la sessione esegue i task in sequenza, e la separazione tra chi scrive gli oracoli e chi li fa passare diventa temporale: gli oracoli si scrivono, si fanno rientrare e si taggano in una sessione; la costruzione parte in una sessione nuova, che non li modifica, e il rientro lo verifica con `verifica_ownership.py` come per un sotto-agente. Il report lo dichiara tra i limiti.

@@ -4,7 +4,7 @@ La costruzione parallela dipende da comportamenti dell'ambiente che cambiano tra
 
 - un worktree che parte dalla base sbagliata produce codice coerente con uno stato vecchio;
 - una skill non precaricata produce un costruttore che ignora le convenzioni;
-- una regola di deny non attiva lascia installare dipendenze;
+- una regola di deny o un hook non attivi lasciano installare dipendenze o pubblicare;
 - due costruttori che condividono lo stesso database di test si corrompono i dati a vicenda.
 
 Nessuno di questi errori si vede. Per questo il controllo è funzionale dove può: un sotto-agente di prova dimostra il comportamento, invece di leggere una configurazione e presumere.
@@ -36,11 +36,8 @@ Il controllo ha due parti: la prima si esegue prima dello scheletro, la seconda 
 ### Permessi
 
 - **Regole di allow** per i comandi del piano (test, lint, typecheck, fitness) e per `git add` e `git commit` nei worktree. I sotto-agenti in background ti chiedono i permessi nella sessione principale: senza queste regole un'ondata si ferma ad aspettare un clic.
-- **Regole di deny**, da preparare ora e attivare a fine scheletro:
-  - i comandi che aggiungono dipendenze nello stack in uso, per esempio `Bash(npm install *)`, `Bash(composer require *)`, `Bash(pip install *)`;
-  - la pubblicazione, `Bash(git push *)`.
-
-  Le installazioni dal lockfile (`npm ci`, `composer install`) restano permesse se servono ai worktree. Le regole di deny nelle impostazioni valgono anche per i sotto-agenti.
+- **Regole di deny**, da preparare ora e attivare a fine scheletro, per i comandi che aggiungono dipendenze nello stack in uso, per esempio `Bash(npm install *)`, `Bash(composer require *)`, `Bash(pip install *)`. Valgono per la sessione e per i sotto-agenti, e va bene così: durante le ondate una dipendenza nuova è una modifica. Le installazioni dal lockfile (`npm ci`, `composer install`) restano permesse se servono ai worktree.
+- **Il push resta alla sessione.** Non con una regola di deny, che bloccherebbe anche la sessione, e in un ambiente effimero la sessione deve pushare a ogni chiusura (voce 0.01). Gli agenti che scrivono o eseguono comandi hanno nella loro definizione un hook che rifiuta `git push`, attivo solo mentre l'agente lavora (`app-blueprint`, 0.03).
 
 ### Agenti e skill
 
@@ -76,7 +73,8 @@ Infine rimuovi il worktree e il ramo di prova. Controlla il nome prima di cancel
 
 ## Parte 2 — Dopo lo scheletro
 
-- **Regole di deny attive.** Un sotto-agente banale prova una forma innocua di un comando vietato, per esempio `git push --dry-run`. Deve essere rifiutato.
+- **Blocchi attivi.** Un `backend-builder` prova una forma innocua di ciascun comando vietato: un'installazione nuova e `git push --dry-run`. Entrambi devono essere rifiutati, il push con il messaggio dell'hook. Se l'hook non scatta, la cartella non è fidata, e gli hook degli agenti di progetto non girano (`FONTI.md` di `app-blueprint`): accetta la fiducia e ripeti. Se non si può, in un ambiente non effimero aggiungi `Bash(git push *)` alle deny per la durata delle ondate; in uno effimero il rientro controlla che il ramo non sia sul remoto (`rientro.md`, passo 3), e il report lo dice.
+- **Le istruzioni dei sotto-agenti.** Un sotto-agente in worktree carica le istruzioni che la conversazione principale aveva al suo avvio, non il `CLAUDE.md` del suo worktree: la parte comune del brief incolla quello corrente (`assets/brief-costruttore.md`).
 - **Comandi reali nei worktree.** Un sotto-agente esegue `modulo_backend` e `modulo_frontend` su un modulo dello scheletro dentro il suo worktree. Prova che le dipendenze sono raggiungibili e che i comandi funzionano fuori dal checkout principale.
 - **Esecuzioni parallele senza collisioni.** I worktree isolano i file, non i processi. Lancia due sotto-agenti che eseguono insieme gli stessi comandi di test, e se il piano ha test end-to-end anche `e2e`, in due worktree diversi: entrambi devono passare. Se collidono, lo scheletro va corretto prima delle ondate. Le cause tipiche:
   - lo stesso database di test: serve un database per esecuzione, in memoria o con un nome unico;

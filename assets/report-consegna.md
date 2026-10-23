@@ -1,6 +1,6 @@
 # Template del report di consegna
 
-Il report descrive ciò che è stato consegnato, non ciò che il piano prometteva. L'ordine conta: chi legge deve incontrare per prima cosa ciò che può fare danno. Togli le sezioni vuote; le uniche sempre presenti sono *Stato in una riga*, *Verificato* e *Non verificato*.
+Si scrive in `docs/consegna/incremento-<n>/report.md` e si committa. Il report descrive ciò che è stato consegnato, non ciò che il piano prometteva. L'ordine conta: chi legge deve incontrare per prima cosa ciò che può fare danno. Togli le sezioni vuote; le uniche sempre presenti sono *Stato in una riga*, *Verificato* e *Non verificato*.
 
 ---
 
@@ -29,15 +29,16 @@ escalation aperte. Se non c'è nulla, togli la sezione.>
 <ciò che si ritiene vero senza averlo eseguito, con il perché>
 
 ## Non verificato
-<ciò che non è stato verificato, perché, e cosa serve per verificarlo>
+<ciò che non è stato verificato, perché, e cosa serve per verificarlo; per prime
+le voci chiuse come non verificabili, con chi le ha accettate>
 
 ## Rischi accettati
 | Rischio | Chi l'ha accettato | Quando | Motivo |
 |---|---|---|---|
 
 ## Fasi 9–12
-<voci chiuse, escluse con il motivo, rinviate al debito di pubblicazione; le
-escluse come non verificabili, elencate>
+<voci chiuse, escluse con il motivo, non verificabili con ciò che servirebbe,
+rinviate al debito di pubblicazione>
 
 ## Escalation, modifiche proposte, debito
 - <escalation non risolta, con le opzioni>

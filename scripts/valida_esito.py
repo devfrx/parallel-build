@@ -7,14 +7,15 @@ prima di spendere tempo nel rientro:
   1. schema fisso: campi obbligatori, tipi, valori ammessi, nessun campo ignoto
   2. coerenza: un esito "completato" non ha verifiche fallite né decisioni
      bloccanti; "parziale" e "bloccato" dicono perché; "bloccato" ha almeno una
-     decisione bloccante
-  3. con --piano: l'esito è del task giusto, e un esito "completato" riporta come
-     passato ogni criterio che il piano assegna al task
+     decisione bloccante; un test "rosso-atteso" dice nelle note perché fallisce
+  3. con --piano: l'esito è del task giusto, un esito "completato" riporta come
+     passato ogni criterio che il piano assegna al task, e solo un task
+     dell'ondata degli oracoli consegna test rossi per la ragione giusta
 
 Campi dell'esito (JSON):
   task, esito (completato | parziale | bloccato), ramo, commit (hash 7-40 hex),
   motivo (obbligatorio se l'esito non è "completato"),
-  fatto [testo], verificato [{comando, risultato: passato | fallito, criterio?, note?}],
+  fatto [testo], verificato [{comando, risultato: passato | fallito | rosso-atteso, criterio?, note?}],
   dedotto [testo], fuori_scope [testo],
   da_decidere [{domanda, opzioni [testo], bloccante: bool, raccomandazione?}],
   candidati_promozione [testo] (facoltativo), documentazione_design (testo)
@@ -34,7 +35,9 @@ import tomllib
 from pathlib import Path
 
 ESITI = {"completato", "parziale", "bloccato"}
-RISULTATI = {"passato", "fallito"}
+# rosso-atteso: un oracolo che fallisce perché il comportamento non c'è ancora, la
+# consegna di un task di oracoli; per tutti gli altri un test rosso è "fallito".
+RISULTATI = {"passato", "fallito", "rosso-atteso"}
 OBBLIGATORI = {
     "task": str, "esito": str, "ramo": str, "commit": str, "fatto": list, "verificato": list,
     "dedotto": list, "fuori_scope": list, "da_decidere": list, "documentazione_design": str,
@@ -47,8 +50,9 @@ def _testi(valore):
     return isinstance(valore, list) and all(isinstance(x, str) and x.strip() for x in valore)
 
 
-def valida(esito, criteri_task=None, id_task=None):
-    """Restituisce l'elenco degli errori di un esito già letto."""
+def valida(esito, criteri_task=None, id_task=None, ondata=None):
+    """Restituisce l'elenco degli errori di un esito già letto. ondata: quella del task
+    nel piano, se nota."""
     if not isinstance(esito, dict):
         return ["l'esito deve essere un oggetto JSON"]
     errori = []
@@ -79,7 +83,7 @@ def valida(esito, criteri_task=None, id_task=None):
         errori.append("'candidati_promozione' deve contenere solo testi non vuoti")
 
     passati = set()
-    falliti = 0
+    falliti = rossi_attesi = 0
     for i, v in enumerate(esito["verificato"]):
         if not isinstance(v, dict) or not isinstance(v.get("comando"), str) or not v.get("comando").strip():
             errori.append(f"verificato[{i}]: serve un 'comando' testuale")
@@ -92,6 +96,11 @@ def valida(esito, criteri_task=None, id_task=None):
             errori.append(f"verificato[{i}]: campi ignoti {sorted(ignoti_v)}")
         if v["risultato"] == "fallito":
             falliti += 1
+        elif v["risultato"] == "rosso-atteso":
+            rossi_attesi += 1
+            if not isinstance(v.get("note"), str) or not v["note"].strip():
+                errori.append(f"verificato[{i}]: un test rosso-atteso dice nelle note perché fallisce "
+                              "(asserzione o \"non implementato\", mai sintassi, import o configurazione)")
         elif isinstance(v.get("criterio"), str):
             passati.add(v["criterio"])
 
@@ -123,6 +132,9 @@ def valida(esito, criteri_task=None, id_task=None):
         if stato == "bloccato" and not bloccanti:
             errori.append("un esito 'bloccato' ha almeno una decisione bloccante in 'da_decidere'")
 
+    if rossi_attesi and ondata is not None and ondata != "oracoli":
+        errori.append("solo un task dell'ondata degli oracoli consegna test rossi per la ragione giusta: "
+                      "per gli altri un test rosso è 'fallito'")
     if id_task is not None and esito["task"] != id_task:
         errori.append(f"l'esito è del task '{esito['task']}', non di '{id_task}'")
     if criteri_task is not None and stato == "completato":
@@ -148,7 +160,7 @@ def main(argv=None):
         print(f"Errore d'uso: JSON non valido: {e}", file=sys.stderr)
         return 2
 
-    criteri = None
+    criteri = ondata = None
     if args.piano:
         if not args.task:
             print("Errore d'uso: --piano richiede --task", file=sys.stderr)
@@ -164,8 +176,9 @@ def main(argv=None):
             print(f"Errore d'uso: il task '{args.task}' non è nel piano", file=sys.stderr)
             return 2
         criteri = task.get("criteri") or []
+        ondata = task.get("ondata")
 
-    errori = valida(esito, criteri, args.task)
+    errori = valida(esito, criteri, args.task, ondata)
     if errori:
         print(f"Esito da correggere ({len(errori)} problemi):")
         for e in errori:

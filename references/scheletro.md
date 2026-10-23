@@ -4,14 +4,14 @@ Le voci 7.09 e 7.10: gli ambienti che il profilo chiede, e un walking skeleton c
 
 ## 7.09 Ambienti
 
-Quelli di `[[ambienti]]` (`progetto.py mostra ambiente:<id>`), disponibili davvero: locale riproducibile per i servizi (database e simili, documentato nel README), e test, staging o produzione secondo il profilo. Con un'esposizione pubblicabile o personale la voce è spesso di esercizio e rinviata, salvo l'ambiente locale che serve comunque a costruire. L'evidenza è il comando che avvia ciascun ambiente, o l'URL.
+Quelli di `[[ambienti]]` (`progetto.py mostra ambiente:<id>`), disponibili davvero: locale riproducibile per i servizi (database e simili, documentato nel README), e test, staging o produzione secondo il profilo. La voce vale sempre; con un'esposizione personale o pubblicabile gli ambienti di solito sono il locale e uno di prova. L'evidenza è il comando che avvia ciascun ambiente, o l'URL. Un ambiente che qui non si può avere, come uno staging senza l'infrastruttura, non si esclude: la voce si chiude `--non-verificabile`, con ciò che servirebbe e l'approvazione dell'utente.
 
 ## 7.10 Walking skeleton
 
 La sessione lo costruisce sul branch d'integrazione. Ogni voce esiste perché toglie ai costruttori una decisione o un file condiviso.
 
 1. **Progetto e tooling** secondo gli ADR e `ST-qualita-codice`: lint, formatter, typecheck configurati; ogni script nominato in `[comandi]` del piano esiste. `modulo_backend` e `modulo_frontend` accettano l'id del modulo.
-2. **Elenco dei moduli in attesa** (per esempio `tests/in-attesa.txt`): una voce per lato per ogni modulo dell'incremento, nella forma `backend:veicoli` e `frontend:veicoli`. `suite` e CI escludono gli oracoli delle voci presenti; `modulo_backend` e `modulo_frontend` li eseguono sempre, perché sono i comandi con cui il costruttore lavora sul suo modulo. Il file è intoccabile per i task: lo aggiorna l'orchestratore al rientro.
+2. **Elenco d'attesa** (per esempio `tests/in-attesa.txt`): gli oracoli che possono essere rossi perché il codice non c'è ancora, una riga ciascuno, nella forma con cui il runner li seleziona, cioè per id: `storia:CLI-1` per i test d'accettazione, contratto e autorizzazione che portano l'id della storia (D.12), `percorso:PC-1` per i test end-to-end, `motore:prezzi` per la suite di conformità di un motore. Ci sono le storie dell'incremento, i suoi percorsi critici e i motori che costruisce, nient'altro: gli oracoli degli incrementi precedenti restano nella suite, verdi. `suite` e CI escludono ciò che è in elenco; `modulo_backend` e `modulo_frontend` eseguono sempre i test del modulo, perché sono i comandi con cui il costruttore lavora. Il file è intoccabile per i task: lo aggiorna l'orchestratore al rientro (`rientro.md`).
 3. **CI** secondo `ST-ci-cd`, con gli stessi comandi del piano (una sola fonte, nessuna deriva) più i gate della supply chain: audit delle vulnerabilità, licenze, scansione dei segreti, SBOM se il profilo la chiede.
 4. **Isolamento dei test in parallelo.** Ogni esecuzione usa un proprio database (in memoria, o con un nome unico), una propria porta per il server dei test end-to-end e proprie cartelle temporanee. I worktree isolano i file, non i processi: senza questa voce due costruttori si corrompono i dati a vicenda e i test diventano rossi a caso.
 5. **Migrazioni** da `progetto.py schema`: le tabelle, le colonne e gli indici dell'incremento, e nient'altro. Ciò che lo schema progetta per incrementi futuri non entra in una migrazione ora. Factory e seed con dati sintetici.
@@ -23,7 +23,7 @@ La sessione lo costruisce sul branch d'integrazione. Ogni voce esiste perché to
 11. **Facciate**: interfaccia e implementazione finta per ogni operazione di facciata del dettaglio dei moduli, così chi dipende da un modulo compila e si testa senza aspettarlo.
 12. **Fitness function**: le regole di confine tra moduli (si attraversano solo facciate ed eventi), eseguite in CI.
 13. **Generatori** per archetipo: creano i file di un modulo nuovo. Ora sono abbozzi; diventano definitivi dagli esemplari.
-14. **`CLAUDE.md` snello**, con `lean-docs`: comandi, struttura, convenzioni e regole per gli agenti (ownership, oracoli intoccabili, escalation, nessun trailer di co-autore), più i rimandi alle schede degli esemplari. Ogni sotto-agente lo carica: ogni riga si paga una volta per agente.
+14. **`CLAUDE.md` snello**, con `lean-docs`: comandi, struttura, convenzioni e regole per gli agenti (ownership, oracoli intoccabili, escalation, nessun trailer di co-autore), più i rimandi alle schede degli esemplari. Un sotto-agente in worktree non lo legge dal suo worktree: carica le istruzioni che la conversazione principale aveva all'avvio (`FONTI.md` di `app-blueprint`), che possono essere di prima dello scheletro. Per questo la parte comune del brief incolla il `CLAUDE.md` corrente. Ogni riga si paga una volta per agente.
 15. **README**: come si avvia, come si testa.
 
 Il walking skeleton attraversa tutti gli strati: almeno una richiesta va dall'interfaccia al database e torna, passando per kernel, autorizzazioni ed errori, anche se ogni modulo risponde "non implementato".
@@ -32,7 +32,7 @@ Il walking skeleton attraversa tutti gli strati: almeno una richiesta va dall'in
 
 1. Esegui ogni comando del piano: tutti verdi sullo scheletro vuoto. Se un test runner fallisce quando non trova test, configuralo perché non lo faccia: è un errore che arriverebbe alle ondate travestito da fallimento del costruttore.
 2. Committa e applica il tag `build/incremento-<n>/scheletro`.
-3. Attiva le regole di deny ed esegui la Parte 2 del controllo preliminare.
+3. Attiva le regole di deny delle installazioni ed esegui la Parte 2 del controllo preliminare.
 4. Chiudi 7.09 e 7.10 con le evidenze: i comandi degli ambienti, il tag, l'esito della Parte 2.
 
 Lo schema realizzato e i container descrivono ora ciò che esiste: le viste di `docs/progettazione/viste/` li mostrano già, e se il codice diverge dal progetto è una modifica, non un aggiornamento dei diagrammi.
@@ -43,4 +43,4 @@ Il congelamento ha chiuso la parte di `app-blueprint`; questo gate dice che il p
 
 ## Incrementi successivi
 
-Lo scheletro esiste già, e le voci 7.09 e 7.10 restano chiuse. Prima degli oracoli, la sessione lo estende in serie per ciò che l'incremento aggiunge: migrazioni da `progetto.py schema --nuovi`, compatibili all'indietro secondo `ST-migrazioni`; stub, registrazioni e facciate finte dei moduli nuovi; codice e mock rigenerati dalla specifica; voci nuove nell'elenco d'attesa. Un cambio a qualcosa di già costruito, se c'è, arriva da una modifica approvata e dal diff delle sorgenti rispetto al tag del congelamento precedente. Tag `build/incremento-<n>/scheletro`.
+Lo scheletro esiste già: la 7.09 resta chiusa, la 7.10 si richiude a ogni incremento. Prima degli oracoli, la sessione lo estende in serie per ciò che l'incremento aggiunge: migrazioni da `progetto.py schema --nuovi`, compatibili all'indietro secondo `ST-migrazioni`, comprese quelle delle modifiche che `schema --nuovi` elenca; stub, registrazioni e facciate finte dei moduli e delle operazioni nuovi; codice e mock rigenerati dalla specifica; nell'elenco d'attesa le storie, i percorsi e i motori del nuovo incremento. Ciò che un cambio tocca in elementi già costruiti arriva da una modifica approvata, con il suo impatto, e dal diff delle sorgenti rispetto al tag del congelamento precedente. Tag `build/incremento-<n>/scheletro`, e la 7.10 si chiude con quello.

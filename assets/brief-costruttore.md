@@ -2,9 +2,9 @@
 
 Un brief ha tre parti:
 
-- **Regole comuni**: in testa, con lo stesso testo e nello stesso ordine in ogni brief dell'ondata. Le regole non si deformano tra un agente e l'altro, e il prefisso identico è riutilizzabile dalla cache dei prompt.
+- **Regole comuni**: in testa, con lo stesso testo e nello stesso ordine in ogni brief dell'ondata, seguite dal `CLAUDE.md` corrente del repo. Le regole non si deformano tra un agente e l'altro, e il prefisso identico è riutilizzabile dalla cache dei prompt. Il `CLAUDE.md` si incolla perché un sotto-agente in worktree carica quello che la sessione aveva all'avvio, non quello del suo worktree.
 - **Task**: poche righe con ciò che il progetto non dice, come i comandi risolti e il primo passo.
-- **Fascio**: l'uscita di `progetto.py fascio --task <id>`, incollata così com'è. Assembla dalle sorgenti tutto ciò che il task deve leggere — storie e criteri, dettaglio del modulo, tabelle, operazioni, facciate, matrice, errori, strategie — ed elenca a parte ciò che è progettato per incrementi futuri.
+- **Fascio**: l'uscita di `progetto.py fascio --task <id>`, incollata così com'è. Assembla dalle sorgenti ciò che il task deve leggere per il suo lato — storie e criteri, dettaglio del modulo, tabelle, operazioni con la loro regola della matrice, schermate e operazioni di altri moduli che chiamano, facciate, integrazioni, validazioni, errori, modifiche dell'incremento, riferimenti citati, strategie — ed elenca a parte ciò che è progettato per incrementi futuri.
 
 Compila i campi tra `<...>` con valori risolti: l'agente non vede `.build/` del checkout principale. Togli le righe che non si applicano.
 
@@ -18,8 +18,9 @@ Indice: Regole comuni · Task di costruzione · Task di oracoli · Task end-to-e
 ## Regole comuni
 
 Lavori in un worktree isolato, su un ramo tuo. Le skill che hai precaricate
-governano come lavori; il CLAUDE.md del repo dice comandi, struttura e
-convenzioni.
+governano come lavori; il CLAUDE.md del repo, incollato in fondo a queste
+regole, dice comandi, struttura e convenzioni: vale questa copia, non una che
+avessi già in contesto.
 
 1. Scrivi solo nei percorsi che possiedi. Tutto il resto è in sola lettura.
    Se per completare il task devi toccare altro, fermati: è un'escalation.
@@ -43,8 +44,9 @@ esclusa da git, non va nel commit). Schema fisso, nessun campo in più:
 - task, esito ("completato" | "parziale" | "bloccato"), ramo, commit (hash)
 - motivo: obbligatorio se l'esito non è "completato"
 - fatto: [testi]
-- verificato: [{criterio?, comando, risultato: "passato" | "fallito", note?}]
-  — una voce per ogni criterio del task, con il nome del criterio
+- verificato: [{criterio?, comando, risultato: "passato" | "fallito" |
+  "rosso-atteso", note?}] — una voce per ogni criterio del task, con il nome
+  del criterio; "rosso-atteso" solo in un task di oracoli, con il perché nelle note
 - dedotto: [testi]; fuori_scope: [testi, con file:riga]
 - da_decidere: [{domanda, opzioni: [testi], bloccante: true|false, raccomandazione?}]
 - candidati_promozione: [testi] (facoltativo)
@@ -53,6 +55,10 @@ esclusa da git, non va nel commit). Schema fisso, nessun campo in più:
 "completato" significa: tutti i criteri passati, nessuna decisione bloccante
 aperta. Nel messaggio finale riporta il percorso assoluto del file d'esito e
 una riga di sintesi.
+
+### CLAUDE.md del repo
+
+<contenuto corrente di CLAUDE.md, dal commit da cui partono i worktree>
 ```
 
 ## Task di costruzione
@@ -108,8 +114,8 @@ Scrivi:
 
 Ogni test deve essere rosso per la ragione giusta: un'asserzione o "non
 implementato", mai un errore di sintassi, import o configurazione. Eseguili con
-<comando risolto>. Per ogni tipo di test riporta in `verificato.note` come
-fallisce.
+<comando risolto> e riportalo in `verificato` con risultato "rosso-atteso" e,
+nelle note, come fallisce ogni tipo di test. I criteri del task, invece, passano.
 
 Non scrivere codice applicativo, nemmeno per "aiutare" i test.
 
@@ -123,17 +129,21 @@ Criteri: <criterio>: <comando risolto>
 ```markdown
 ## Task <id> — percorso critico "<nome>"
 
-Scrivi il test end-to-end del percorso, sull'app integrata, dalla sequenza e
-dalle schermate del fascio: elementi cercati per ruolo e nome accessibile.
+Scrivi il test end-to-end del percorso dalla sequenza e dalle schermate del
+fascio: elementi cercati per ruolo e nome accessibile, con l'id del percorso
+nel nome. L'app non è ancora costruita: girerà contro lo scheletro, e il test
+sarà rosso finché i moduli delle sue storie non rientrano. Diventerà verde, o
+mostrerà un difetto, sull'app integrata alla voce 9.08.
 
 Avvio dell'app per i test: <comando>. Usa una porta e un database tuoi: altri
 test end-to-end girano in parallelo.
 
-Se il percorso fallisce per un difetto dell'app, non correggere l'app e non
-indebolire il test. Chiudi con esito "parziale" e nel motivo scrivi il passo, il
-comportamento atteso, quello ottenuto e il modulo sospetto.
+Eseguilo con <comando e2e risolto> e riportalo in `verificato` con risultato
+"rosso-atteso": nelle note, il primo passo che fallisce e perché (lo stub non
+mostra l'elemento, risponde "non implementato"). Un errore di sintassi, di
+selettore o di avvio non è un rosso atteso: va corretto.
 
-Criteri: e2e: <comando risolto>
+Criteri: <criterio>: <comando risolto>
 
 <uscita di progetto.py fascio --task <id>>
 ```

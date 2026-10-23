@@ -23,6 +23,28 @@ def contiene(errori, frammento):
     return any(frammento in e for e in errori)
 
 
+class TestRossoAtteso(unittest.TestCase):
+    def esito_oracoli(self, note="14 asserzioni false; nessun errore di sintassi, import o configurazione"):
+        e = esempio()
+        e["task"] = "O-veicoli"
+        e["verificato"] = [{"criterio": "lint", "comando": "composer lint && npm run lint", "risultato": "passato"},
+                           {"comando": "composer test:modulo -- veicoli", "risultato": "rosso-atteso", "note": note}]
+        return e
+
+    def test_gli_oracoli_consegnano_test_rossi(self):
+        self.assertEqual(ve.valida(self.esito_oracoli(), ["lint"], "O-veicoli", "oracoli"), [])
+
+    def test_il_rosso_atteso_dice_perche(self):
+        self.assertTrue(contiene(ve.valida(self.esito_oracoli(note=""), ["lint"], "O-veicoli", "oracoli"),
+                                 "dice nelle note perché fallisce"))
+
+    def test_un_costruttore_non_consegna_test_rossi(self):
+        e = esempio()
+        e["verificato"].append({"comando": "composer test", "risultato": "rosso-atteso", "note": "manca il codice"})
+        self.assertTrue(contiene(ve.valida(e, CRITERI, "C-veicoli-be", "costruzione"),
+                                 "solo un task dell'ondata degli oracoli"))
+
+
 class TestEsempio(unittest.TestCase):
     def test_l_esempio_e_valido_anche_con_i_criteri(self):
         self.assertEqual(ve.valida(esempio(), CRITERI, "C-veicoli-be"), [])

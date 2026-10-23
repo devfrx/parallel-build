@@ -16,7 +16,7 @@ Il progetto ha risolto chi fa cosa. Restano i problemi che nascono quando gli ag
 
 Il principio di fondo: **la parte parallela è economica, quella seriale decide la qualità e la velocità.** Dieci agenti scrivono insieme ciò che un agente scrive in sequenza; ma tutto ciò che scrivono rientra, uno alla volta, da una porta stretta. Quella porta va resa veloce e inflessibile: veloce perché è il collo di bottiglia, inflessibile perché è l'unico punto in cui un errore si ferma prima di propagarsi.
 
-**Prerequisiti.** Un incremento congelato: `progetto.py verifica --congelamento stato` verde, con lo script di `app-blueprint` (`python <cartella di app-blueprint>/scripts/progetto.py`, eseguito dalla radice del repo). Skill su cui questa si appoggia, senza ripeterle: `app-blueprint` (sorgenti, comandi, protocollo di punti e fasi, gestione delle modifiche), `decision-principles` (la delega), `dev-discipline` e `lean-code` (il codice dentro ogni task), `dev-communication` (quando fermarsi: qui prende la forma delle escalation), `frontend-craft` (l'interfaccia e la sua revisione), `lean-docs` (il `CLAUDE.md` snello), `compliance-docs` (conformità), `session-resume` e `session-handoff`. Leggile se non sono già in contesto.
+**Prerequisiti.** Un incremento congelato: `progetto.py verifica --congelamento stato` verde, con lo script di `app-blueprint` (`python <cartella di app-blueprint>/scripts/progetto.py`, eseguito dalla radice del repo). Skill su cui questa si appoggia, senza ripeterle, ciascuna letta quando serve e non all'avvio: `app-blueprint` per sorgenti, comandi e protocollo di punti, fasi e modifiche (`references/gate.md`); `decision-principles` alla prima delega; `dev-discipline` e `lean-code` per il codice di motore, esemplari e correzioni a monte; `dev-communication` per le escalation; `frontend-craft` per gli esemplari e la lente interfaccia; `lean-docs` per il `CLAUDE.md`; `compliance-docs` alla 11.04; `session-resume` e `session-handoff` all'inizio e alla fine di una sessione.
 
 ## Le tre regole che governano tutto
 
@@ -28,7 +28,7 @@ In caso di tensione tra qualsiasi indicazione di questa skill, vincono queste tr
 
 ## Gli agenti
 
-Li installa `app-blueprint` alla voce 0.03, in `.claude/agents/` del progetto; possono anche venire da un plugin o da `~/.claude/agents/`. Ognuno ha il minimo privilegio che il suo ruolo richiede:
+Li installa `app-blueprint` alla voce 0.03, in `.claude/agents/` del progetto; possono anche venire da un plugin o da `~/.claude/agents/`. Ognuno ha il minimo privilegio che il suo ruolo richiede, e chi esegue comandi ha un hook che gli rifiuta `git push`: pubblica solo la sessione.
 
 | Agente | Quando | Strumenti | Skill precaricate | Isolamento |
 |---|---|---|---|---|
@@ -53,22 +53,24 @@ La costruzione usa il protocollo di `app-blueprint`, sullo stesso registro: ogni
 | 8 | `costruzione.md`, `delega-ed-esito.md`, `rientro.md` | oracoli, motore, esemplari, prova a secco e approvazione degli esemplari, ondate di costruzione con il rientro, controlli sull'intera base di codice |
 | 9–12 | `verifica-e-rilascio.md` | integrazione ed end-to-end, revisione per lenti e verifiche, accettazione dell'utente, rilascio secondo il profilo, report, pulizia, retrospettiva |
 
-Ogni stato verde di fine tappa porta un tag `build/incremento-<n>/<tappa>`: si torna indietro di un'ondata con un comando, non con un'archeologia.
+Ogni stato verde di fine tappa porta un tag `build/incremento-<n>/<tappa>`: si torna indietro di un'ondata con un comando, non con un'archeologia. Le evidenze che sono file — il brief degli esemplari, il report di consegna — stanno in `docs/consegna/incremento-<n>/`, committate; `.build/` tiene solo il lavoro di sessione.
 
-**Il brief di ogni task** è la parte comune di `assets/brief-costruttore.md` più `progetto.py fascio --task <id>`, che assembla dalle sorgenti esattamente ciò che il task deve leggere ed elenca a parte ciò che è progettato per incrementi futuri e non si costruisce ora.
+**Il brief di ogni task** è la parte comune di `assets/brief-costruttore.md`, con il `CLAUDE.md` corrente, più `progetto.py fascio --task <id>`, che assembla dalle sorgenti esattamente ciò che il task deve leggere per il suo lato ed elenca a parte ciò che è progettato per incrementi futuri e non si costruisce ora.
 
-**La DoD di incremento** è quella del catalogo, filtrata dal profilo (`progetto.py checklist --dod`): le voci di livello `task` si verificano a ogni rientro, quelle di livello `incremento` alla chiusura della fase 8 (voce 8.01).
+**La DoD di incremento** è quella del catalogo, filtrata dal profilo e senza le voci escluse (`progetto.py checklist --dod`): le voci di livello `task` si verificano a ogni rientro, quelle di livello `incremento` che la costruzione chiude alla 8.01; la revisione del codice la completano le lenti della 10.01, l'accettazione la 11.08.
+
+**Costruzione seriale.** Con `[scheda].costruzione = "seriale"` il metodo è lo stesso, un task alla volta: stesso piano, stesse ondate, stessi rientri e gate (`costruzione.md`, *Costruzione seriale*).
 
 ## Protocolli trasversali
 
-**Checkpoint.** Il branch d'integrazione è sempre verde, perché il merge si committa solo dopo il gate. "Verde" esclude solo gli oracoli dei moduli in attesa, e l'elenco si svuota man mano che i moduli rientrano (voce 8.13). Ogni merge commit è un punto di ripristino.
+**Checkpoint.** Il branch d'integrazione è sempre verde, perché il merge si committa solo dopo il gate. "Verde" esclude solo gli oracoli in attesa — le storie, i percorsi e i motori dell'incremento che il codice non realizza ancora — e l'elenco si svuota man mano che i moduli rientrano (8.13) e i percorsi passano (9.08). Ogni merge commit è un punto di ripristino.
 
 **Escalation.** Il sotto-agente non chiede: scrive la domanda nel suo esito, con le opzioni e la sua raccomandazione.
 
 - Bloccante: cambiare un contratto, aggiungere una dipendenza, toccare un intoccabile, contestare un oracolo, colmare un requisito ambiguo che cambia il comportamento. Ferma solo il suo task.
 - Non bloccante: si raccoglie e si porta all'utente in blocco a fine ondata.
 
-**Cambiamento.** Ogni cambio di ciò che è congelato — contratto, oracolo, scope — è una modifica di `app-blueprint` (`MOD-n`, con l'analisi d'impatto e la decisione dell'utente), che annulla il congelamento: si lavorano le voci riaperte, si ricongela, e solo allora i task coinvolti incorporano il cambio (`rientro.md`). Una richiesta nuova a costruzione avviata si registra come modifica proposta e si valuta all'apertura dell'incremento successivo: lo scope congelato è ciò che rende possibile il parallelismo.
+**Cambiamento.** Ogni cambio di ciò che è congelato — contratto, oracolo, scope — è una modifica di `app-blueprint` (`MOD-n`, con l'analisi d'impatto e la decisione dell'utente, applicata con `progetto.py modifica MOD-n --da`), che annulla il congelamento: si lavorano le voci riaperte, si ricongela, e solo allora i task coinvolti incorporano il cambio (`rientro.md`). Una richiesta nuova a costruzione avviata si registra come modifica proposta e si decide all'apertura dell'incremento successivo (`progetto.py incrementa`): lo scope congelato è ciò che rende possibile il parallelismo.
 
 **Tra una sessione e l'altra.** Lo stato vive su disco: registro dei gate, piano, registro di build, tag, esiti. A fine sessione `session-handoff`, all'inizio `session-resume` e `progetto.py stato`.
 
@@ -77,9 +79,10 @@ Ogni stato verde di fine tappa porta un tag `build/incremento-<n>/<tappa>`: si t
 - **Limiti d'uso raggiunti a metà ondata.** L'ondata si ferma e riprende quando i limiti lo consentono; il registro lo mostra. Non si recupera tempo abbassando i controlli.
 - **Un sotto-agente finisce senza file d'esito.** Riprendilo chiedendo l'esito. Se non è possibile, tratta il ramo come `parziale` e verifica tutto da zero.
 - **Conflitto di merge.** Con ownership disgiunta un conflitto è un accoppiamento che il piano non ha visto. Annulla il merge, trova quale file condiviso o quale errore di piano l'ha prodotto, correggi a monte, poi rilancia.
-- **Un oracolo è davvero sbagliato.** Decide l'utente, con una modifica. La correzione la fa un `test-author` in un task dedicato: mai il costruttore, mai l'orchestratore durante un merge.
+- **Un oracolo è davvero sbagliato.** Decide l'utente, con una modifica. La correzione la fa un `test-author`, rilanciando il task di oracoli del modulo con la modifica nel brief: mai il costruttore, mai l'orchestratore durante un merge.
+- **Una correzione a monte o una promozione.** Non sono task del piano: le fa la sessione, in serie, sul branch d'integrazione, con i gate completi (`rientro.md`).
 - **Il gate incrementale è lento.** È la parte seriale: ottimizzalo (solo i test del modulo toccato, cache, parallelismo del test runner) prima di continuare. Saltarlo non è un'ottimizzazione.
-- **L'utente chiede di saltare il controllo preliminare o un gate.** Dì prima cosa si perde e proponi l'alternativa sicura più economica. Se l'utente decide comunque, la voce si chiude come non applicabile con il suo motivo e la sua approvazione, e il report la elenca tra il non verificato.
+- **L'utente chiede di saltare il controllo preliminare o un gate.** Dì prima cosa si perde e proponi l'alternativa sicura più economica. Se l'utente decide comunque, la voce si chiude come non verificabile (`--non-verificabile`) con il suo motivo e la sua approvazione, e il report la elenca tra il non verificato.
 - **Più task della concorrenza disponibile.** L'ondata procede a lotti: si lancia il successivo man mano che i precedenti rientrano.
 
 ## Cosa NON fare

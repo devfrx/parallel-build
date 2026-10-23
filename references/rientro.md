@@ -20,29 +20,31 @@ Dal checkout principale, sul branch d'integrazione pulito. I rami si prendono ma
    ```
 
    Il piano si legge da `docs/progettazione/piano/piano.toml`; `--piano` cambia il percorso.
-3. **Trailer di co-autore.**
+3. **Trailer di co-autore e push.**
    ```bash
    git log --format=%B <branch-integrazione>..<ramo> | grep -i "co-authored-by"
+   git ls-remote --heads origin <ramo>
    ```
-   Non deve trovare nulla. Se trova qualcosa, il ramo torna al proprietario per riscrivere i messaggi.
+   Nessuno dei due deve trovare nulla. Un trailer: il ramo torna al proprietario per riscrivere i messaggi. Un ramo sul remoto: un sotto-agente ha pubblicato, è un'escalation all'utente.
 4. **Merge senza commit.**
    ```bash
    git merge --no-ff --no-commit <ramo>
    ```
    Se c'è un conflitto, `git merge --abort` e vedi *Conflitti* più sotto.
-5. **Aggiornamenti dell'orchestratore, nello stesso merge.** Per un task di esemplari o di costruzione:
-   - togli dall'elenco dei moduli in attesa la voce del suo lato (`backend:<modulo>` o `frontend:<modulo>`);
-   - per un backend, porta l'interruttore del modulo da mock a reale.
+5. **Aggiornamenti dell'orchestratore, nello stesso merge.** Per un task di motore, esemplari o costruzione:
+   - togli dall'elenco d'attesa le storie dell'incremento i cui moduli, quello che le orchestra e quelli che toccano, sono ora tutti rientrati per tutti i lati che hanno nel piano; per un motore, la sua riga `motore:`; i percorsi critici escono alla 9.08;
+   - per un backend, porta l'interruttore del modulo da mock a reale;
+   - `git add` di ciò che hai cambiato, così il gate lo prova e il passo 7 lo committa o lo annulla insieme al merge.
 6. **Gate incrementale**, sul checkout con il merge applicato:
    - i criteri del task, con `{modulo}` risolto;
    - `fitness` e `lint`, che sono rapidi e globali.
 
-   Per un task di **oracoli** il gate è diverso: i test del modulo devono essere rossi per la ragione giusta. Leggi i fallimenti e controlla che siano asserzioni o "non implementato", non errori di sintassi, import o configurazione.
+   Per un task di **oracoli**, anche end-to-end, il gate è diverso: i criteri del task (di solito `lint`) passano, e i test nuovi sono rossi per la ragione giusta, come l'esito li dichiara (`rosso-atteso`). Esegui il comando del modulo, o `e2e`, e leggi i fallimenti: asserzioni, "non implementato", elementi che lo stub non mostra; non errori di sintassi, import o configurazione. La suite resta verde, perché ciò che è rosso è in elenco d'attesa.
 
    Il gate incrementale è anche la DoD di livello `task`, per ciò che un comando vede: i criteri del task (D.01, D.03), lint e fitness (D.02), l'ownership che lascia intatti contratti e oracoli (D.10), lo scanner dei segreti se è rapido (D.07). L'esito dice cosa cambia nella documentazione (D.11) e cosa resta indietro: ciò che è debito va in `[[debito]]` (D.13). Ciò che un comando non vede, come log senza dati personali (D.08), lo guardano le lenti della revisione.
 7. **Esito del gate.**
    - **Verde**: `git commit`, con il messaggio nello stile del repo e senza trailer di co-autore. Registra `rientro_ok`.
-   - **Rosso**: `git merge --abort`. Il checkout torna allo stato di prima, compresi gli aggiornamenti del passo 5. Registra `rientro_ko` con la causa, poi decidi tra ciclo di correzione e interruttore sistemico.
+   - **Rosso**: `git merge --abort`. Il checkout torna allo stato di prima, compresi gli aggiornamenti del passo 5, che sono nell'indice. Registra `rientro_ko` con la causa, poi decidi tra ciclo di correzione e interruttore sistemico.
 
 Il worktree di un task si rimuove solo a task chiuso: una ripresa ci lavora ancora dentro.
 
@@ -70,7 +72,7 @@ Solo `codice` è un fallimento del costruttore. Ogni altra categoria punta a mon
 
 1. **Fermi l'ondata.** Nessun nuovo lancio e nessun nuovo rientro. Gli agenti già al lavoro finiscono, e i loro rami aspettano.
 2. **Registri l'evento** `interruttore`, con la causa.
-3. **Correggi a monte**, in un task seriale della sessione: contratto, esemplare, generatore, brief, scheletro o ambiente. Una correzione strutturale, come un cambio di contratto, è una decisione dell'utente e passa dalla gestione del cambiamento.
+3. **Correggi a monte**, nella sessione, in serie, direttamente sul branch d'integrazione: esemplare, generatore, brief, scheletro o ambiente. Non è un task del piano, quindi niente esito né `verifica_ownership.py`: la correzione tocca proprio ciò che nessun task possiede. Al suo posto, i gate completi (`suite`, `fitness`, `lint`) e un commit `monte: <categoria>: <dettaglio>`. Una correzione di ciò che è congelato — un contratto, un oracolo — è una modifica, e passa dalla gestione del cambiamento.
 4. **Riapri l'ondata.** I rami in attesa e i task da correggere incorporano la correzione portando nel proprio ramo il branch d'integrazione (`git merge <branch-integrazione>`, nel loro worktree). Con l'ownership disgiunta non ci sono conflitti, e questi tentativi non contano nel limite di due.
 
 Correggere a valle, task per task, ciò che ha una causa a monte produce N correzioni diverse dello stesso problema: dieci moduli coerenti con l'esemplare e incoerenti tra loro.
@@ -89,11 +91,11 @@ Un conflitto è quindi sempre un accoppiamento che il piano non ha visto. Non si
 ## Fine ondata
 
 1. Tutti i task dell'ondata sono rientrati, oppure sono escalation con una decisione dell'utente su come procedere.
-2. Le voci dei moduli costruiti non sono più nell'elenco d'attesa.
+2. Le storie dei moduli rientrati, e i motori, non sono più nell'elenco d'attesa.
 3. `suite` e CI sono verdi. Se la suite fallisce dove i gate incrementali passavano, ogni merge commit è un punto di ripristino: bisect sui merge dell'ondata.
 4. Tag `build/incremento-<n>/<ondata>`, evento `ondata_fine`.
 5. Le escalation non bloccanti vanno all'utente in blocco.
-6. I `candidati_promozione` degli esiti si valutano. Quelli accettati si promuovono in un task seriale della sessione: lo spostamento nel codice condiviso e l'aggiornamento dei moduli che lo usano, con i gate. Ora si può, perché nessun task parallelo è in corso.
+6. I `candidati_promozione` degli esiti si valutano. Quelli accettati li promuove la sessione, in serie, come una correzione a monte: lo spostamento nel codice condiviso e l'aggiornamento dei moduli che lo usano, con i gate completi. Ora si può, perché nessun task parallelo è in corso.
 
 Un rientro sbagliato si annulla con `git revert -m 1 <merge>`, che non riscrive la storia. Tornare indietro di un'intera fase è una decisione dell'utente.
 
@@ -105,13 +107,13 @@ Ciò che è congelato cambia solo con una modifica di `app-blueprint` (`MOD-n` i
 
 **Cambio di contratto, di oracolo o di scope**, da un'escalation o dall'utente:
 
-1. **Impatto**: `progetto.py impatto <id> --profondita 3` per ogni elemento toccato (operazioni, tabelle, facciate, regole della matrice, storie), più gli oracoli che lo verificano e il codice e i mock che ne derivano.
+1. **Impatto**: `progetto.py impatto <id> [<id>…] --profondita 3` con gli elementi toccati (operazioni, tabelle, facciate, regole della matrice, storie): stampa ciò che ne dipende e le righe `impatto` e `riapre` della modifica. Si aggiungono gli oracoli che li verificano e il codice e i mock che ne derivano.
 2. **Decisione dell'utente**, con l'impatto davanti, sulla modifica proposta: ciò che cambia, le voci da riaprire, i task coinvolti.
-3. **Applicazione**: con la modifica approvata, `progetto.py modifica MOD-n`. Il congelamento è annullato: i task coinvolti si fermano, gli altri possono finire ma non si lancia nulla di nuovo. La sessione lavora le voci riaperte con il protocollo di `app-blueprint`, aggiorna le sorgenti e ricongela con `progetto.py congela`, con un nuovo tag.
-4. **Propagazione**, in serie: si rigenerano codice e mock; un `test-author` aggiorna gli oracoli coinvolti in un task dedicato; i task coinvolti incorporano il cambio portando nel proprio ramo il branch d'integrazione.
+3. **Applicazione**: con il sì, `progetto.py modifica MOD-n --da <chi approva>`. Annulla le chiusure delle voci riaperte e il congelamento: i task coinvolti si fermano, gli altri possono finire ma non si lancia nulla di nuovo. La sessione lavora le voci riaperte con il protocollo di `app-blueprint`, aggiorna le sorgenti e ricongela con `progetto.py congela`, con revisioni nuove almeno sull'impatto e un nuovo tag.
+4. **Propagazione**, in serie: la sessione rigenera codice e mock; gli oracoli coinvolti li aggiorna un `test-author` rilanciando il task di oracoli del loro modulo, lo stesso del piano, con la modifica nel brief: stessi percorsi, quindi stessa ownership; i task coinvolti incorporano il cambio portando nel proprio ramo il branch d'integrazione.
 5. **Registro**: evento `cambiamento` con l'id della modifica.
 
-**Oracolo contestato.** Decide l'utente, con l'argomento del costruttore e il testo della storia davanti. Se l'oracolo è sbagliato, è una modifica come sopra, e lo corregge un `test-author`: mai il costruttore, mai l'orchestratore dentro un merge.
+**Oracolo contestato.** Decide l'utente, con l'argomento del costruttore e il testo della storia davanti. Se l'oracolo è sbagliato, è una modifica come sopra, e lo corregge un `test-author` rilanciando il task di oracoli del modulo: mai il costruttore, mai l'orchestratore dentro un merge.
 
 ## Eventi del registro, in sintesi
 

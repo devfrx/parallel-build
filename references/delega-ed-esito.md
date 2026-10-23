@@ -14,9 +14,9 @@ Indice: Come si lancia · Il brief · L'esito · Escalation · Minimo privilegio
 
 ## Il brief
 
-Parti da `assets/brief-costruttore.md`: la parte comune, poi poche righe del task (comandi dei criteri risolti con l'id del modulo, primo passo, quando fermarsi), poi l'uscita di `progetto.py fascio --task <id>`. Due principi ne decidono la forma.
+Parti da `assets/brief-costruttore.md`: la parte comune, con il `CLAUDE.md` corrente incollato, poi poche righe del task (comandi dei criteri risolti con l'id del modulo, primo passo, quando fermarsi), poi l'uscita di `progetto.py fascio --task <id>`. Il `CLAUDE.md` si incolla perché un sotto-agente in worktree carica quello che la conversazione principale aveva all'avvio, non quello del suo worktree (`FONTI.md` di `app-blueprint`). Due principi ne decidono la forma.
 
-**Il task è decidibile senza chiedere.** Tutto ciò che serve per decidere sta nel brief: i percorsi posseduti, le storie con i criteri, il dettaglio del modulo, le tabelle, le operazioni, le facciate degli altri moduli, la matrice, gli errori, le strategie citate, e a parte ciò che è progettato per incrementi futuri e non si costruisce. Il fascio lo assembla dalle sorgenti, quindi non può contraddirle. Ciò che non è decidibile è un difetto del progetto: lo trova la prova di decidibilità di `app-blueprint` prima del congelamento, o si corregge con una modifica prima del lancio, non si scopre durante.
+**Il task è decidibile senza chiedere.** Tutto ciò che serve per decidere sta nel brief, per il lato del task: i percorsi posseduti, le storie con i criteri, il dettaglio del modulo, le tabelle, le operazioni con la regola della matrice che le autorizza, le operazioni di altri moduli che le sue schermate chiamano, le facciate degli altri moduli, le integrazioni, le validazioni, gli errori, le modifiche dell'incremento che toccano il modulo, il testo dei riferimenti citati, le strategie, e a parte ciò che è progettato per incrementi futuri e non si costruisce. Il fascio lo assembla dalle sorgenti, quindi non può contraddirle. Ciò che non è decidibile è un difetto del progetto: lo trova la prova di decidibilità di `app-blueprint` prima del congelamento, o si corregge con una modifica prima del lancio, non si scopre durante.
 
 **La parte comune viene prima, ed è identica per tutti.** Le sezioni stabili (ruolo, regole, formato dell'esito, regole di commit) vanno in testa, con lo stesso testo e nello stesso ordine in ogni brief dell'ondata; la parte specifica del task va in fondo. Così il prefisso comune è riutilizzabile dalla cache dei prompt, e le regole non si deformano tra un brief e l'altro.
 
@@ -34,7 +34,7 @@ Lo schema è fisso. Lo definisce e lo verifica `scripts/valida_esito.py`; un ese
 | `esito` | `completato`, `parziale` o `bloccato` |
 | `motivo` | obbligatorio se l'esito non è `completato` |
 | `fatto` | cosa è stato fatto, una voce per risultato |
-| `verificato` | `{comando, risultato, criterio?, note?}` per ogni verifica eseguita |
+| `verificato` | `{comando, risultato, criterio?, note?}` per ogni verifica eseguita; `risultato` è `passato`, `fallito` o, solo per un task di oracoli, `rosso-atteso` con il perché nelle note |
 | `dedotto` | ciò che si ritiene vero senza averlo eseguito |
 | `fuori_scope` | problemi visti fuori dal task, con `file:riga`, non corretti |
 | `da_decidere` | `{domanda, opzioni, bloccante, raccomandazione?}` |
@@ -80,7 +80,7 @@ Ogni agente ha solo gli strumenti che il suo ruolo richiede, scritti nella sua d
 - il `reviewer` legge ed esegue comandi, ma non ha Write ed Edit;
 - i costruttori scrivono, ma non hanno accesso al web.
 
-Sopra questo, le regole di deny vietano a tutti installazioni e pubblicazione.
+Sopra questo, le regole di deny vietano a tutti le installazioni, e un hook nella definizione degli agenti che scrivono vieta loro il push, lasciandolo alla sessione (`preflight.md`).
 
 Il resto:
 
