@@ -1,0 +1,49 @@
+{
+  "task": "C-veicoli-be",
+  "esito": "completato",
+  "ramo": "worktree-agent-veicoli-be",
+  "commit": "3f9c2a1",
+  "fatto": [
+    "Facciata Veicoli implementata: elenco paginato, dettaglio, creazione, associazione a cliente",
+    "Generati controller e richieste con il generatore dell'esemplare clienti, poi completata la logica"
+  ],
+  "verificato": [
+    {
+      "criterio": "modulo_backend",
+      "comando": "composer test:modulo -- veicoli",
+      "risultato": "passato",
+      "note": "31 oracoli verdi (accettazione, contratto, autorizzazioni), 6 test unitari propri"
+    },
+    {
+      "criterio": "fitness",
+      "comando": "vendor/bin/deptrac analyse && npm run fitness",
+      "risultato": "passato"
+    },
+    {
+      "criterio": "lint",
+      "comando": "composer lint && npm run lint",
+      "risultato": "passato"
+    }
+  ],
+  "dedotto": [
+    "Il limite di 50 elementi per pagina regge il carico dichiarato: non misurato, solo stimato dal budget di query del test"
+  ],
+  "fuori_scope": [
+    "app/Condiviso/Errori.php:41 — il messaggio dell'errore di conflitto non è tradotto"
+  ],
+  "da_decidere": [
+    {
+      "domanda": "La ricerca per targa deve ignorare spazi e trattini?",
+      "opzioni": [
+        "Sì, normalizzare in ricerca",
+        "No, corrispondenza esatta come da specifica"
+      ],
+      "raccomandazione": "Sì: la specifica non lo vieta e gli operatori digitano in modi diversi",
+      "bloccante": false
+    }
+  ],
+  "candidati_promozione": [
+    "Componente di selezione cliente con ricerca: usato in veicoli, probabilmente utile anche a interventi"
+  ],
+  "documentazione_design": "Nessun cambiamento a diagrammi o mockup: il modulo realizza l'ER esistente"
+}
