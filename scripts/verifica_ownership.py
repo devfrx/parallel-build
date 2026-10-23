@@ -11,12 +11,11 @@ Limiti dichiarati:
   - controlla i percorsi, non il contenuto: un import degli interni di un altro
     modulo lo trovano le fitness function, non questo script
   - legge dal piano solo ciò che gli serve; la validità complessiva del piano è
-    compito di valida_piano.py di app-blueprint
+    compito di `progetto.py verifica` di app-blueprint
 
-Uso, dalla radice del checkout principale:
-  python verifica_ownership.py --piano .build/piano.toml --task C-veicoli-be \\
-      --base main --ramo <ramo-del-worktree>
-  python verifica_ownership.py --piano .build/piano.toml --task C-veicoli-be \\
+Uso, dalla radice del checkout principale (il piano ha un percorso predefinito):
+  python verifica_ownership.py --task C-veicoli-be --base main --ramo <ramo-del-worktree>
+  python verifica_ownership.py --task C-veicoli-be \\
       --percorsi app/Moduli/Veicoli/Servizio.php composer.lock
 
 Esito: 0 il ramo tocca solo percorsi del task; 1 violazioni, oppure ramo senza
@@ -29,12 +28,14 @@ import sys
 import tomllib
 from pathlib import Path
 
+PIANO = "docs/progettazione/piano/piano.toml"
+
 
 def corrisponde(percorso, pattern):
     """True se il percorso è descritto dal pattern ('cartella/**' o file esatto).
 
-    Duplicato intenzionale della semantica di valida_piano.py: le due skill si
-    installano separatamente e nessuna può importare l'altra.
+    Duplicato intenzionale della semantica del piano di app-blueprint: le due
+    skill si installano separatamente e nessuna importa l'altra.
     """
     if pattern.endswith("/**"):
         return percorso.startswith(pattern[:-3] + "/")
@@ -75,9 +76,10 @@ def verifica(piano, id_task, percorsi):
         if any(corrisponde(p, x) for x in intoccabili):
             motivo = "intoccabile: lo congela lo scheletro, toccarlo richiede un'escalation"
         else:
+            oracoli = piano.get("oracoli") if isinstance(piano.get("oracoli"), dict) else {}
             modulo_oracolo = next(
-                (m.get("id") for m in piano.get("moduli") or []
-                 if any(corrisponde(p, o) for o in m.get("oracoli") or [])),
+                (modulo for modulo, percorsi in oracoli.items()
+                 if any(corrisponde(p, o) for o in percorsi or [])),
                 None,
             )
             proprietario = next(
@@ -87,7 +89,7 @@ def verifica(piano, id_task, percorsi):
             if modulo_oracolo:
                 motivo = f"oracolo del modulo '{modulo_oracolo}': i test scritti da altri non si modificano"
             elif any(corrisponde(p, e) for e in percorsi_e2e):
-                motivo = "test end-to-end: appartengono all'ondata e2e"
+                motivo = "test end-to-end: li scrivono i task end-to-end dell'ondata degli oracoli"
             elif proprietario:
                 motivo = f"appartiene al task '{proprietario}' della stessa ondata"
             else:
@@ -98,7 +100,7 @@ def verifica(piano, id_task, percorsi):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Verifica l'ownership di un ramo prima del rientro.")
-    parser.add_argument("--piano", required=True, help="percorso del piano, di solito .build/piano.toml")
+    parser.add_argument("--piano", default=PIANO, help=f"percorso del piano (default {PIANO})")
     parser.add_argument("--task", required=True, help="id del task a cui appartiene il ramo")
     sorgente = parser.add_mutually_exclusive_group(required=True)
     sorgente.add_argument("--ramo", help="ramo da verificare (richiede --base)")

@@ -9,9 +9,9 @@ La costruzione parallela dipende da comportamenti dell'ambiente che cambiano tra
 
 Nessuno di questi errori si vede. Per questo il controllo è funzionale dove può: un sotto-agente di prova dimostra il comportamento, invece di leggere una configurazione e presumere.
 
-Annota ogni controllo in `.build/preflight.md` (passato, fallito o non applicabile, con la prova) e registra l'evento `preflight` con `scripts/registro.py`. I fatti su Claude Code citati qui sono stati verificati sulla documentazione a ottobre 2026: se la versione in uso è più recente e un controllo si comporta diversamente, rileggi la documentazione invece di adattare il controllo a memoria.
+Annota ogni controllo in `.build/preflight.md` (passato, fallito o non applicabile, con la prova) e registra l'evento `preflight` con `scripts/registro.py`. I fatti su Claude Code citati qui sono quelli di `FONTI.md` di `app-blueprint`, con la data della verifica: se la versione in uso si comporta diversamente, rileggi la documentazione invece di adattare il controllo a memoria.
 
-Il controllo ha due parti: la prima si esegue prima dello scheletro, la seconda dopo, perché alcune cose (comandi reali, regole di deny) esistono solo a scheletro finito.
+Il controllo ha due parti: la prima si esegue prima dello scheletro, la seconda dopo, perché alcune cose (comandi reali, regole di deny) esistono solo a scheletro finito. A un incremento successivo al primo si ripetono la Parte 1 e la Parte 2 sullo scheletro esistente: l'ambiente può essere cambiato tra un incremento e l'altro.
 
 ## Parte 1 — Prima dello scheletro
 
@@ -20,7 +20,7 @@ Il controllo ha due parti: la prima si esegue prima dello scheletro, la seconda 
 - Nel checkout principale è attivo il branch d'integrazione del piano.
 - Il working tree è pulito (`git status --porcelain` vuoto). I worktree partono dal commit: ciò che non è committato, i sotto-agenti non lo vedono.
 - `.build/` e `.claude/worktrees/` sono ignorati. Verificalo con `git check-ignore -v .build/x .claude/worktrees/x`. La documentazione di Claude Code consiglia `.claude/worktrees/` in `.gitignore`; `.build/` va in `.git/info/exclude`.
-- Il piano passa ancora `valida_piano.py` di `app-blueprint`. Se è cambiato dopo il gate 1, qualcuno deve averlo deciso: verifica nel registro.
+- **L'incremento è congelato**: `progetto.py verifica --congelamento stato` senza errori. Controlla la Definition of Ready alla data del congelamento, e che il piano sia dell'incremento corrente. Se qualcosa è cambiato dopo il congelamento, una modifica approvata l'ha annullato e lo script lo dice: si ricongela con `app-blueprint` prima di costruire.
 
 ### Impostazioni dei worktree
 
@@ -44,8 +44,8 @@ Il controllo ha due parti: la prima si esegue prima dello scheletro, la seconda 
 
 ### Agenti e skill
 
-- Le cinque definizioni di agente sono disponibili: nel plugin, o in `~/.claude/agents/`.
-- **Le skill precaricate si risolvono davvero.** Se una skill elencata nel campo `skills` manca, Claude Code la salta e lo annota solo nel log di debug, quindi un costruttore senza `dev-discipline` lavora comunque, senza che nessuno se ne accorga. Lancia ogni tipo di agente con un compito banale: "Senza leggere file, elenca i titoli delle skill presenti nel tuo contesto". Se ne manca una, controlla il nome. Le skill distribuite in un plugin possono richiedere il nome con il prefisso del plugin.
+- Le cinque definizioni di agente sono disponibili: in `.claude/agents/` del progetto, dove le installa `app-blueprint` alla voce 0.03, in un plugin o in `~/.claude/agents/`.
+- **Le skill precaricate si risolvono davvero.** Se una skill elencata nel campo `skills` manca, Claude Code la salta e lo annota solo nel log di debug, quindi un costruttore senza `dev-discipline` lavora comunque, senza che nessuno se ne accorga. La sonda della 0.03 lo verifica; ripetila se le definizioni o l'ambiente sono cambiati da allora: "Senza usare strumenti, per ogni skill precaricata nel tuo contesto riporta il nome e la prima frase dopo il titolo principale". Le skill distribuite in un plugin possono richiedere il nome con il prefisso del plugin.
 - **Agent teams.** Verifica se sono attivi. In ogni caso valgono le due regole di lancio di SKILL.md: isolamento passato nella chiamata, nessun nome ai sotto-agenti.
 
 ### Prova funzionale del worktree
@@ -72,13 +72,13 @@ Infine rimuovi il worktree e il ramo di prova. Controlla il nome prima di cancel
 ### Capacità
 
 - **Concorrenza.** Il limite predefinito è di 20 sotto-agenti concorrenti (variabile `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`). Oltre, l'ondata procede a lotti.
-- **Limiti d'uso.** I sotto-agenti consumano gli stessi limiti d'uso della sessione: un'ondata da dieci costruttori li consuma circa dieci volte più in fretta. Decidi con l'utente la dimensione dei lotti in base al suo piano d'abbonamento, e mettilo in conto nella durata della giornata.
+- **Limiti d'uso.** I sotto-agenti consumano gli stessi limiti d'uso della sessione: un'ondata da dieci costruttori li consuma circa dieci volte più in fretta. Decidi con l'utente la dimensione dei lotti in base al suo piano d'abbonamento.
 
 ## Parte 2 — Dopo lo scheletro
 
 - **Regole di deny attive.** Un sotto-agente banale prova una forma innocua di un comando vietato, per esempio `git push --dry-run`. Deve essere rifiutato.
 - **Comandi reali nei worktree.** Un sotto-agente esegue `modulo_backend` e `modulo_frontend` su un modulo dello scheletro dentro il suo worktree. Prova che le dipendenze sono raggiungibili e che i comandi funzionano fuori dal checkout principale.
-- **Esecuzioni parallele senza collisioni.** I worktree isolano i file, non i processi. Lancia due sotto-agenti che eseguono insieme gli stessi comandi di test, e se il piano ha test end-to-end anche `e2e`, in due worktree diversi: entrambi devono passare. Se collidono, lo scheletro va corretto prima del giorno 3. Le cause tipiche:
+- **Esecuzioni parallele senza collisioni.** I worktree isolano i file, non i processi. Lancia due sotto-agenti che eseguono insieme gli stessi comandi di test, e se il piano ha test end-to-end anche `e2e`, in due worktree diversi: entrambi devono passare. Se collidono, lo scheletro va corretto prima delle ondate. Le cause tipiche:
   - lo stesso database di test: serve un database per esecuzione, in memoria o con un nome unico;
   - la stessa porta del server: serve una porta libera scelta all'avvio;
   - una cache condivisa: serve una cartella temporanea per esecuzione.

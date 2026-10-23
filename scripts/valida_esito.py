@@ -21,7 +21,7 @@ Campi dell'esito (JSON):
 
 Uso:
   python valida_esito.py <worktree>/.build/esiti/C-veicoli-be.json
-  python valida_esito.py <file> --piano .build/piano.toml --task C-veicoli-be
+  python valida_esito.py <file> --piano docs/progettazione/piano/piano.toml --task C-veicoli-be
 
 Esito: 0 esito valido; 1 esito da correggere; 2 errore d'uso (file assente,
 JSON o TOML non valido, task assente dal piano).

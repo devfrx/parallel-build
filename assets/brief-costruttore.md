@@ -1,11 +1,14 @@
 # Template del brief per i sotto-agenti
 
-Un brief ha due parti:
+Un brief ha tre parti:
 
 - **Regole comuni**: in testa, con lo stesso testo e nello stesso ordine in ogni brief dell'ondata. Le regole non si deformano tra un agente e l'altro, e il prefisso identico è riutilizzabile dalla cache dei prompt.
-- **Task**: in fondo, con tutto e solo ciò che rende il task decidibile.
+- **Task**: poche righe con ciò che il progetto non dice, come i comandi risolti e il primo passo.
+- **Fascio**: l'uscita di `progetto.py fascio --task <id>`, incollata così com'è. Assembla dalle sorgenti tutto ciò che il task deve leggere — storie e criteri, dettaglio del modulo, tabelle, operazioni, facciate, matrice, errori, strategie — ed elenca a parte ciò che è progettato per incrementi futuri.
 
-Compila i campi tra `<...>` con valori risolti, mai con riferimenti al piano: l'agente non vede `.build/` del checkout principale. Togli le righe che non si applicano.
+Compila i campi tra `<...>` con valori risolti: l'agente non vede `.build/` del checkout principale. Togli le righe che non si applicano.
+
+Indice: Regole comuni · Task di costruzione · Task di oracoli · Task end-to-end · Prova a secco · Correzione.
 
 ---
 
@@ -57,13 +60,6 @@ una riga di sintesi.
 ```markdown
 ## Task <id> — modulo <modulo>, lato <backend|frontend>
 
-Archetipo <archetipo>, rischio <standard|alto>.
-
-Obiettivo: <cosa deve fare questa parte del modulo, in due-tre righe>.
-Storie: <id e titolo>.
-
-Possiedi: <percorsi>
-Leggi: <contratti e mockup, con i percorsi>
 Esemplare da seguire: <percorsi dell'esemplare>. La scheda è in CLAUDE.md,
 sezione "<titolo>".
 
@@ -76,14 +72,16 @@ Criteri, tutti verdi prima di dichiarare "completato":
 - <criterio>: <comando risolto>
 - <criterio>: <comando risolto>
 
-Facciate di altri moduli che puoi usare: <elenco>. Nello scheletro sono stub:
-il loro comportamento atteso è nella specifica, non nello stub.
+Le facciate degli altri moduli sono stub nello scheletro: il loro
+comportamento atteso è quello del fascio, non dello stub.
 <Solo frontend: lavori contro il mock generato dalla specifica. Gli stati di
 caricamento, vuoto ed errore vengono dai suoi esempi.>
-<Solo rischio alto: criteri aggiuntivi <...>; ogni scelta non ovvia va in
-"dedotto" o in "da_decidere".>
+<Solo rischio alto: ogni scelta non ovvia va in "dedotto" o in "da_decidere".>
 
+Ciò che il fascio elenca come progettato per incrementi futuri non si costruisce.
 Fermati con un'escalation se: <casi specifici del task, oltre alle regole comuni>.
+
+<uscita di progetto.py fascio --task <id>>
 ```
 
 ## Task di oracoli
@@ -92,10 +90,9 @@ Fermati con un'escalation se: <casi specifici del task, oltre alle regole comuni
 ## Task <id> — oracoli del modulo <modulo>
 
 Scrivi i test che il codice del modulo dovrà far passare. Il codice non esiste
-ancora: lo scheletro risponde "non implementato".
-
-Possiedi: <percorsi degli oracoli>
-Leggi: <specifica API, matrice delle autorizzazioni, mockup, criteri delle storie>
+ancora: lo scheletro risponde "non implementato". Tutto ciò che il test misura
+è nel fascio qui sotto: criteri, operazioni con i loro esempi, matrice, errori,
+schermate con i nomi accessibili.
 
 Scrivi:
 - accettazione: un test per ogni criterio delle storie <id>, con l'id della
@@ -117,6 +114,8 @@ fallisce.
 Non scrivere codice applicativo, nemmeno per "aiutare" i test.
 
 Criteri: <criterio>: <comando risolto>
+
+<uscita di progetto.py fascio --task <id>>
 ```
 
 ## Task end-to-end
@@ -124,10 +123,9 @@ Criteri: <criterio>: <comando risolto>
 ```markdown
 ## Task <id> — percorso critico "<nome>"
 
-Scrivi il test end-to-end del percorso, sull'app integrata.
-Passi: <sequenza>. Storie attraversate: <id>.
+Scrivi il test end-to-end del percorso, sull'app integrata, dalla sequenza e
+dalle schermate del fascio: elementi cercati per ruolo e nome accessibile.
 
-Possiedi: <percorsi>
 Avvio dell'app per i test: <comando>. Usa una porta e un database tuoi: altri
 test end-to-end girano in parallelo.
 
@@ -136,20 +134,8 @@ indebolire il test. Chiudi con esito "parziale" e nel motivo scrivi il passo, il
 comportamento atteso, quello ottenuto e il modulo sospetto.
 
 Criteri: e2e: <comando risolto>
-```
 
-## Spike
-
-```markdown
-## Spike <id>
-
-Codice usa e getta: questo ramo non rientrerà.
-Domanda: <domanda>
-Criterio di successo: <criterio misurabile>
-
-Rispondi con la prova: comando, misura, output. Esito "completato" se hai una
-risposta, sì o no che sia; "bloccato" se la domanda non si può decidere così,
-e spiega perché.
+<uscita di progetto.py fascio --task <id>>
 ```
 
 ## Prova a secco

@@ -5,18 +5,18 @@ Il report descrive ciò che è stato consegnato, non ciò che il piano promettev
 ---
 
 ```markdown
-# Report di consegna — <nome dell'app> (<YYYY-MM-DD>)
+# Report di consegna — <nome dell'app>, incremento <n> (<AAAA-MM-GG>)
 
 ## Stato in una riga
-<es. "Completa secondo la Definition of Done: 12/12 storie must verdi; deploy
-in staging non provato.">
+<es. "Incremento 1 accettato: 17/17 storie verdi; ripristino da backup non
+provato in questo ambiente.">
 
 ## ⚠️ Da sapere subito
-<rischi accettati, voci della PRR non verificabili in locale, escalation
-aperte. Se non c'è nulla, togli la sezione.>
+<rischi accettati, voci chiuse come non verificabili in questo ambiente,
+escalation aperte. Se non c'è nulla, togli la sezione.>
 
 ## Cosa è stato costruito
-| Storia | Priorità | Esito | Test |
+| Storia | Esito | Test d'accettazione | End-to-end |
 |---|---|---|---|
 
 ## Verificato
@@ -35,22 +35,24 @@ aperte. Se non c'è nulla, togli la sezione.>
 | Rischio | Chi l'ha accettato | Quando | Motivo |
 |---|---|---|---|
 
-## Escalation aperte e backlog
-- <escalation non risolta, con le opzioni>
-- Backlog per la versione successiva: <voci da .build/backlog.md>
+## Fasi 9–12
+<voci chiuse, escluse con il motivo, rinviate al debito di pubblicazione; le
+escluse come non verificabili, elencate>
 
-## Production readiness review
-<sintesi: N voci verificate, N non verificabili in locale, N non applicabili;
-le non verificabili, elencate>
+## Escalation, modifiche proposte, debito
+- <escalation non risolta, con le opzioni>
+- Modifiche proposte durante la costruzione: <MOD-n, in una riga>
+- Debito registrato: <DEB-n, in una riga>
 
 ## Metriche dal registro
 <da `registro.py riepilogo`: durata per ondata, rientri riusciti e respinti,
 tentativi medi e massimi, escalation, interruttori, cause più frequenti>
 
 ## Documentazione
-<cosa è stato aggiornato: ADR (stato), docs/design/, README, runbook,
-CLAUDE.md, documenti di conformità>
+<cosa è stato aggiornato: README, runbook, CLAUDE.md, ADR (stato), documenti di
+conformità; viste della progettazione rigenerate>
 
 ## Come proseguire
-<i primi passi consigliati: verifiche mancanti, backlog prioritario>
+<i primi passi consigliati: verifiche mancanti, modifiche da valutare,
+apertura dell'incremento successivo>
 ```

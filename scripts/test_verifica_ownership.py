@@ -15,22 +15,15 @@ SCRIPT = Path(__file__).parent / "verifica_ownership.py"
 PIANO = textwrap.dedent("""
     [progetto]
     nome = "Prova"
+    versione_metodo = "3.0.0"
+    incremento = 1
     branch_integrazione = "main"
-    verdetto = "tre-giorni"
     percorsi_e2e = ["tests/e2e/**"]
     intoccabili = ["composer.lock", "contracts/**"]
 
-    [[moduli]]
-    id = "veicoli"
-    archetipo = "crud"
-    rischio = "standard"
-    oracoli = ["tests/Oracoli/Veicoli/**"]
-
-    [[moduli]]
-    id = "fatture"
-    archetipo = "crud"
-    rischio = "alto"
-    oracoli = ["tests/Oracoli/Fatture/**"]
+    [oracoli]
+    veicoli = ["tests/Oracoli/Veicoli/**"]
+    fatture = ["tests/Oracoli/Fatture/**"]
 
     [[task]]
     id = "C-veicoli-be"
@@ -115,8 +108,8 @@ class TestConGit(unittest.TestCase):
         # Come prescrive il metodo: .build/ è esclusa da git tramite info/exclude.
         with (self.repo / ".git" / "info" / "exclude").open("a", encoding="utf-8") as f:
             f.write(".build/\n")
-        (self.repo / ".build").mkdir()
-        (self.repo / ".build" / "piano.toml").write_text(PIANO, encoding="utf-8")
+        (self.repo / "docs" / "progettazione" / "piano").mkdir(parents=True)
+        (self.repo / vo.PIANO).write_text(PIANO, encoding="utf-8")
         git("add", "-A", cwd=self.repo)
         git("commit", "-q", "-m", "base", cwd=self.repo)
         git("checkout", "-q", "-b", "task-veicoli", cwd=self.repo)
@@ -126,7 +119,7 @@ class TestConGit(unittest.TestCase):
 
     def esegui(self, *argomenti):
         r = subprocess.run(
-            [sys.executable, str(SCRIPT), "--piano", ".build/piano.toml", "--task", "C-veicoli-be", *argomenti],
+            [sys.executable, str(SCRIPT), "--task", "C-veicoli-be", *argomenti],
             cwd=self.repo, capture_output=True, text=True,
         )
         return r.returncode, r.stdout, r.stderr

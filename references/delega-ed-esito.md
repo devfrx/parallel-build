@@ -2,6 +2,8 @@
 
 Un sotto-agente parte con il suo contesto e senza la conversazione, non può fare domande, e alla fine restituisce ciò che dice di aver fatto. Il brief deve quindi renderlo autosufficiente, e l'esito deve essere verificabile da una macchina. Questa reference applica la sezione sulla delega di `decision-principles` alle ondate.
 
+Indice: Come si lancia · Il brief · L'esito · Escalation · Minimo privilegio · Regole di commit · Il ciclo di correzione.
+
 ## Come si lancia
 
 - **Agente**: quello del task nel piano (`test-author`, `backend-builder`, `frontend-builder`). Gli strumenti e le skill precaricate sono già nella sua definizione.
@@ -12,18 +14,9 @@ Un sotto-agente parte con il suo contesto e senza la conversazione, non può far
 
 ## Il brief
 
-Parti da `assets/brief-costruttore.md`. Due principi ne decidono la forma.
+Parti da `assets/brief-costruttore.md`: la parte comune, poi poche righe del task (comandi dei criteri risolti con l'id del modulo, primo passo, quando fermarsi), poi l'uscita di `progetto.py fascio --task <id>`. Due principi ne decidono la forma.
 
-**Il task è decidibile senza chiedere.** Tutto ciò che serve per decidere sta nel brief o in un file che il brief indica:
-
-- i percorsi posseduti;
-- i contratti da leggere;
-- l'esemplare dell'archetipo;
-- i comandi dei criteri, già risolti con l'id del modulo;
-- cosa non toccare;
-- quando fermarsi.
-
-Ciò che non è decidibile è un difetto del piano: si corregge prima del lancio, non si scopre durante.
+**Il task è decidibile senza chiedere.** Tutto ciò che serve per decidere sta nel brief: i percorsi posseduti, le storie con i criteri, il dettaglio del modulo, le tabelle, le operazioni, le facciate degli altri moduli, la matrice, gli errori, le strategie citate, e a parte ciò che è progettato per incrementi futuri e non si costruisce. Il fascio lo assembla dalle sorgenti, quindi non può contraddirle. Ciò che non è decidibile è un difetto del progetto: lo trova la prova di decidibilità di `app-blueprint` prima del congelamento, o si corregge con una modifica prima del lancio, non si scopre durante.
 
 **La parte comune viene prima, ed è identica per tutti.** Le sezioni stabili (ruolo, regole, formato dell'esito, regole di commit) vanno in testa, con lo stesso testo e nello stesso ordine in ogni brief dell'ondata; la parte specifica del task va in fondo. Così il prefisso comune è riutilizzabile dalla cache dei prompt, e le regole non si deformano tra un brief e l'altro.
 
@@ -51,7 +44,7 @@ Lo schema è fisso. Lo definisce e lo verifica `scripts/valida_esito.py`; un ese
 Al rientro:
 
 ```bash
-python scripts/valida_esito.py <percorso-esito> --piano .build/piano.toml --task <id>
+python scripts/valida_esito.py <percorso-esito> --piano docs/progettazione/piano/piano.toml --task <id>
 ```
 
 Con `--piano`, un esito `completato` deve riportare come `passato` ogni criterio del task. È il controllo che l'agente abbia eseguito ciò che il piano chiedeva; che sia vero lo stabiliscono i gate, rieseguiti dall'orchestratore.
@@ -77,7 +70,7 @@ L'orchestratore registra ogni escalation (evento `escalation`, con `--bloccante`
 - Le **bloccanti** le porta all'utente subito, una alla volta, con le opzioni.
 - Le **non bloccanti** le porta in blocco a fine ondata.
 
-Una risposta che tocca una decisione strutturale aggiorna un ADR. Una risposta che cambia un contratto passa dalla gestione del cambiamento (`rientro.md`).
+Una risposta che cambia ciò che è congelato — un contratto, un oracolo, lo scope, una decisione strutturale — è una modifica di `app-blueprint` (`rientro.md`, *Gestione del cambiamento*).
 
 ## Minimo privilegio
 

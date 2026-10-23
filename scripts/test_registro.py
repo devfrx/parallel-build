@@ -46,7 +46,7 @@ class TestRiepilogo(unittest.TestCase):
             rg.crea_evento("rientro_ok", task="C-2", ondata="costruzione", istante="2026-10-01T10:20:00Z"),
             rg.crea_evento("escalation", task="C-2", ondata="costruzione", istante="2026-10-01T10:20:00Z"),
             rg.crea_evento("ondata_fine", ondata="costruzione", istante="2026-10-01T11:30:00Z"),
-            rg.crea_evento("gate", gate="gate-2", esito="passato", istante="2026-10-01T08:30:00Z"),
+            rg.crea_evento("gate", gate="8.12", esito="passato", istante="2026-10-01T08:30:00Z"),
         ]
         r = rg.riepiloga(eventi)
         o = r["ondate"]["costruzione"]
@@ -59,7 +59,7 @@ class TestRiepilogo(unittest.TestCase):
         self.assertEqual((o["escalation"], o["escalation_bloccanti"]), (1, 0))
         self.assertEqual(o["durata_minuti"], 150)
         self.assertEqual(r["cause_piu_frequenti"], [("formato errori", 1)])
-        self.assertEqual(r["gate"][0]["gate"], "gate-2")
+        self.assertEqual(r["gate"][0]["gate"], "8.12")
 
     def test_ondata_non_chiusa(self):
         r = rg.riepiloga([rg.crea_evento("ondata_inizio", ondata="e2e", istante="2026-10-01T09:00:00Z")])
